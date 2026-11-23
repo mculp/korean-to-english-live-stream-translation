@@ -57,7 +57,7 @@ def test_prompts_and_context():
                  "Sok", "Colorful", "YouTiao", "eer0", "LioN", "120", "Happy"):
         assert name in zh, name
         assert name in k.ZH_ASR_PROMPT, name
-    for term in ("分矿", "二本", "遗忘骑", "油条", "人皇", "女猎", "[skip]", "fragmentary"):
+    for term in ("分矿", "二本", "遗忘骑", "油条", "Eer0", "女猎", "[skip]", "fragmentary"):
         assert term in zh, term
     assert "Forsaken Paladin" in zh
     assert "Warcraft 3" in zh
@@ -155,6 +155,20 @@ def test_sniff_and_cli():
     assert a.overdub_delay == 7.0 and a.duck == 0.22
     b = p.parse_args(["https://play.sooplive.com/x/1"])
     assert b.lang == "ko" and not b.overdub and b.context == ""
+
+
+def test_youtiao_cast_vocab():
+    zh = k.ZH_SYSTEM
+    for bit in (
+        "大优", "大U", "big advantage", "曼皇", "阵王", "losing the Archmage",
+        "古树杯", "Ancient of Wonders", "休赛期", "屠了一波", "razed",
+        "鹿/小鹿 = Dryad", "精灵王", "Demigod", "啡啡熊", "比亚", "Beast Master",
+        "练金到2了", "交TP", "120 = Eer0", "Life = the player Life", "DotA",
+        "窝团", "not \"big U\"",
+    ):
+        assert bit in zh, bit
+    assert "小鹿/KOG = Keeper" not in zh
+    assert "浪漫还是大U啊" in zh
 
 
 def test_dog_follows_the_races():
@@ -264,6 +278,7 @@ if __name__ == "__main__":
     test_lang_filter()
     test_hallucination()
     test_prompts_and_context()
+    test_youtiao_cast_vocab()
     test_dog_follows_the_races()
     test_clock_delay_and_mix()
     test_sniff_and_cli()
