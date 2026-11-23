@@ -6,7 +6,7 @@
 #   "numpy",
 #   "sounddevice",
 #   "silero-vad",
-#   "edge-tts",
+#   "edge-tts>=7.3.1",
 #   "mlx-whisper; sys_platform == 'darwin' and platform_machine == 'arm64'",
 #   "faster-whisper; sys_platform != 'darwin' or platform_machine != 'arm64'",
 # ]
@@ -50,6 +50,13 @@ ZH_JUNK_RES = [
     re.compile(r"欢迎订阅"),
     re.compile(r"打赏支持"),
     re.compile(r"支持明镜"),
+    re.compile(r"优优独播剧场"),
+    re.compile(r"独播剧场"),
+    re.compile(r"YoYo Television", re.I),
+    re.compile(r"正遭到攻击"),
+    re.compile(r"(你的|一位玩家的).{0,8}(部队|陆队|基地|工人|建筑)"),
+    re.compile(r"需要更多的"),
+    re.compile(r"不能在那里建造"),
 ]
 ZH_ASR_PROMPT = (
     "魔兽争霸3解说. Infi, Fly100%, TH000, Lyn, Moon, 120, LawLiet, Colorful, YouTiao, 油条, eer0, LioN, Happy, Fortitude, Sok. "
@@ -426,6 +433,8 @@ def main():
     log("TTS:", "ElevenLabs Flash v2.5" if ekey else "Edge neural voice " + a.voice)
 
     stop = threading.Event()
+    edge_fails = 0
+    edge_off = False
     in_q, seg_q, play_q = queue.Queue(), queue.Queue(), queue.Queue()
     for fn, args in [(audio_source, (a.url, a.quality, in_q, stop)), (segmenter, (in_q, seg_q, stop)),
                      (player, (play_q, stop, a.mute, a.volume, a.save, a.out_device, a.out_latency))]:
@@ -437,9 +446,17 @@ def main():
         while not (t_end and time.time() > t_end):
             try: t_seg, seg = seg_q.get(timeout=0.5)
             except queue.Empty: continue
-            age = time.time() - t_seg
-            if age > a.max_lag:
-                log(f"[skip, {age:.0f}s behind]"); continue
+            pending = [(t_seg, seg)]
+            while True:
+                try: pending.append(seg_q.get_nowait())
+                except queue.Empty: break
+            now = time.time()
+            live = [s for s in pending if now - s[0] <= a.max_lag]
+            if not live:
+                log(f"[skip {len(pending)} behind]"); continue
+            if len(live) > 1:
+                log(f"[skip {len(pending) - 1} behind]")
+            t_seg, seg = max(live, key=lambda s: s[0])
             lang, text, nsp = asr.transcribe(seg)
             ok = norm_lang(lang) == prof["whisper"] and len(prof["script"].findall(text)) >= 2 and nsp < 0.6 \
                 and not is_junk(text, a.lang)
@@ -454,17 +471,27 @@ def main():
                 log(f"  - translation failed for: {text[:60]}"); continue
             backlog = play_q.qsize() + seg_q.qsize()
             rate = f"+{min(10 + 15 * backlog, 50)}%"
-            try:
-                if ekey:
-                    try: pcm = eleven_pcm(en, a.eleven_voice, ekey)
-                    except Exception as e:
-                        log("elevenlabs failed:", type(e).__name__); pcm = tts_pcm(en, a.voice, rate)
-                else:
+            pcm = None
+            if ekey:
+                try: pcm = eleven_pcm(en, a.eleven_voice, ekey)
+                except Exception as e:
+                    log("elevenlabs failed:", type(e).__name__)
+            if pcm is None and not edge_off:
+                try:
                     pcm = tts_pcm(en, a.voice, rate)
-            except Exception as e:
-                log("edge-tts failed:", type(e).__name__)
-                if platform.system() != "Darwin": continue
-                pcm = say_pcm(en)
+                    edge_fails = 0
+                except Exception as e:
+                    edge_fails += 1
+                    log("edge-tts failed:", type(e).__name__)
+                    if edge_fails >= 2:
+                        edge_off = True
+                        log("Edge TTS disabled after repeated handshake failures")
+            if pcm is None and platform.system() == "Darwin":
+                try: pcm = say_pcm(en)
+                except Exception as e:
+                    log("say failed:", type(e).__name__)
+            if pcm is None:
+                continue
             play_q.put(pcm)
             d = time.time() - t_seg
             lat.append(d)

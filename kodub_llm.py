@@ -6,7 +6,7 @@
 #   "numpy",
 #   "sounddevice",
 #   "silero-vad",
-#   "edge-tts",
+#   "edge-tts>=7.3.1",
 #   "mlx-whisper; sys_platform == 'darwin' and platform_machine == 'arm64'",
 #   "faster-whisper; sys_platform != 'darwin' or platform_machine != 'arm64'",
 # ]
@@ -54,13 +54,21 @@ ZH_JUNK_RES = [
     re.compile(r"欢迎订阅"),
     re.compile(r"打赏支持"),
     re.compile(r"支持明镜"),
+    re.compile(r"优优独播剧场"),
+    re.compile(r"独播剧场"),
+    re.compile(r"YoYo Television", re.I),
+    # Warcraft 3's own Mandarin announcer, not the caster. "陆队" is the usual mishear of 部队.
+    re.compile(r"正遭到攻击"),
+    re.compile(r"(你的|一位玩家的).{0,8}(部队|陆队|基地|工人|建筑)"),
+    re.compile(r"需要更多的"),
+    re.compile(r"不能在那里建造"),
 ]
 
 KO_ASR_PROMPT = "워크래프트3 중계. 소인, 영섭, 영삼, 032, TH, 파시오, 예진. 마킹, 코셀빵, 포세이큰, 투생템, 멀티, 런버밀, 헤드헌터, 프리스트, 그런트, 힐링웨이브."
 # Short on purpose: Whisper's initial prompt is only ~224 tokens, and a long prompt gets echoed back.
 ZH_ASR_PROMPT = (
     "魔兽争霸3解说. Infi, Fly100%, TH000, Lyn, Moon, 120, LawLiet, Colorful, YouTiao, 油条, eer0, LioN, Happy, Fortitude, Sok. "
-    "人族, 兽族, 亡灵, 暗夜, 大法师, 山丘, 剑圣, 死骑, 恶魔猎手, 小鹿, 月女, 遗忘骑, 分矿, 二本, 三本, 偷家, 女猎, 火枪, 破法."
+    "人族, 兽族, 亡灵, 暗夜, 大法师, 山丘, 剑圣, 死骑, 恶魔猎手, 小鹿, 月女, 遗忘骑, 分矿, 偷矿, 练级, 拉怪, 黄皮."
 )
 
 KO_SYSTEM = """You translate live Korean speech-to-text of a Warcraft 3 or StarCraft esports caster into English, line by line, for text-to-speech.
@@ -75,6 +83,7 @@ Rules:
 - Refer to players as he/they. Use "I" only when the caster clearly talks about himself (his own stream, plans, opinions).
 - If the line is pure noise, a subtitle credit, music, or not commentary, output exactly [skip] and nothing else. Do not guess.
 - If a line is fragmentary but has a plausible casting meaning, translate that meaning instead of skipping.
+- Never second-guess yourself out loud. No "wait", "no", "sorry", or a second version of the line.
 
 Warcraft 3 glossary: 포세이큰/포세이크 = Forsaken (a newly added race, so new Forsaken unit/hero names may appear; "he" when it means that player),
   마킹/MK = Mountain King, 코셀빵 (ASR variants: 코셀, 코셀팡, 코셀방) = Forsaken Paladin (a newly added hero), 휴먼 = Human, 오크 = Orc, 언데드 = Undead, 나엘 = Night Elf,
@@ -91,8 +100,9 @@ Rules:
 - Write it the way an English Warcraft 3 caster would say it out loud: short and natural. Output ONLY that English line, no quotes, notes, or alternatives.
 - Keep player names as their known English handles. Never turn a nickname into an ordinary English word (油条 is the player YouTiao, not fried dough; 彩色 is the player Colorful when it is a name; Moon is the player, 月女 is the hero).
 - Refer to players as he/they. Use "I" only when the caster clearly talks about himself.
-- If the line is pure noise, a subtitle credit, music, or not commentary, output exactly [skip] and nothing else. Do not guess.
+- If the line is pure noise, a subtitle credit, a TV promo (优优独播剧场), the in-game announcer (forces under attack, not enough gold), music, or not commentary, output exactly [skip] and nothing else. Do not guess.
 - If a line is fragmentary but has a plausible casting meaning, translate that meaning instead of skipping.
+- Never second-guess yourself out loud. No "wait", "no", "sorry", or a second version of the line. One spoken line only.
 
 Player handles: Infi, Fly100% (also Fly, 百分百), TH000 (also TH), Lyn, Moon, Fortitude, LawLiet, Sok, Colorful (彩色), YouTiao (油条), eer0 (also 一零), LioN (also 大帝 when that is the caster), 120 (also 人皇), Happy. Other names you recognize (Romantic / 罗曼蒂克, TeD, HawK, Yumiko, Focus, Remind) stay as those handles.
 
@@ -101,7 +111,9 @@ Warcraft 3 glossary, as Chinese casters say it:
 - Heroes: 大法/大法师 = Archmage, 山丘 = Mountain King, 圣骑 = Paladin, 血法 = Blood Mage, 剑圣 = Blademaster, 先知 = Far Seer, 牛头/酋长 = Tauren Chieftain, 暗猎/暗影猎手 = Shadow Hunter, 死骑/死亡骑士 = Death Knight, 巫妖 = Lich, 恐惧 = Dreadlord, 地穴 = Crypt Lord, 恶猎/恶魔猎手 = Demon Hunter, 守望 = Warden, 月女/月骑 = Priestess of the Moon, 小鹿/KOG = Keeper of the Grove, 熊猫 = Pandaren Brewmaster, 炼金 = Alchemist, 火领 = Firelord, 修补 = Tinker, 娜迦 = Naga Sea Witch, 被遗忘者圣骑士/遗忘骑 = Forsaken Paladin (the new tavern hero).
 - Units: 火枪 = Riflemen, 破法 = Spell Breakers, 牧师 = Priests, 女巫 = Sorceress, 民兵 = Militia, 农民 = Peasants, 苦工 = Peons, 大G = Grunts, 猎头 = Headhunters, 狂战 = Berserkers, 狼骑 = Raiders, 蝙蝠 = Batriders, 牛 = Tauren, 飞龙 = Wyverns, 食尸鬼 = Ghouls, 蜘蛛 = Crypt Fiends, 雕像/石像鬼 = Gargoyles, 憎恶 = Abominations, 冰龙 = Frost Wyrms, 女妖 = Banshees, 女猎 = Huntresses, 弓箭 = Archers, 树妖 = Dryads, 奇美拉 = Chimeras, 大山 = Mountain Giants, 角鹰 = Hippogryphs.
 - Buildings and tech: 基地 = main, 兵营 = barracks, 祭坛 = altar, 二本 = tier 2, 三本 = tier 3, 升本 = teching up, 科技 = tech, 塔/箭塔/炮塔 = tower, 商店 = shop, 眼/守卫 = ward.
-- Slang: 分矿/开矿/二矿 = expansion, 主矿 = main gold, 单矿 = one-base, 偷家/偷矿/换家 = base trade or an expo snipe, 运营 = macro, 一波 = all-in, 打架/团战 = fight, 刷野/打野 = creeping, 骚扰/牵制 = harass, 微操 = micro, 卡兵 = body block, 集火 = focus, 风筝 = kite, 残血 = low HP, 人口 = supply, 爆兵 = a timing push, 攻防/1-1 = attack and armor upgrades, 三级 = hero level 3, 三三 = both heroes level 3, 买活 = buying a revive, 回城/TP = town portal, 圣盾 = Divine Shield, 无敌 = invulnerability potion, 隐身 = invisibility potion, 爪子 = claws, 鞋子 = boots, 圆环 = circlet, 翻盘 = a comeback, 后期 = late game, 开局 = the opening.
+- Creeping: 练/练级/练怪 = creeping, leveling the hero on neutral creeps. It does not mean practice or training. 这没法练了 = he can't creep here anymore. 这里不练了 = not creeping here anymore. 转而练边上 / 练边上 = switching to creep the side camps. 拉怪 = pulling creeps. 刷野/打野 = creeping too.
+- Slang: 分矿/开矿/二矿 = taking an expansion, 主矿 = main gold, 单矿 = one-base, 偷矿 = sniping or denying that expansion, 偷家/换家 = base trade, 运营 = macro, 一波 = all-in, 打架/团战 = fight, 抓 = picking a unit or hero off, 秒 = bursting something down instantly, 网/被网 = netted or ensnared (crypt fiend web or raider net), 骚扰/牵制 = harass, 微操 = micro, 卡兵 = body block, 集火 = focus, 风筝 = kite, 残血 = low HP, 人口 = supply, 爆兵 = a timing push, 攻防/1-1 = attack and armor upgrades, 三级 = hero level 3, 三三 = both heroes level 3, 买活 = buying a revive, 回城/TP = town portal, 圣盾 = Divine Shield, 无敌 = invulnerability potion, 隐身 = invisibility potion, 爪子 = claws, 鞋子 = boots, 圆环 = circlet, 翻盘 = a comeback, 后期 = late game, 开局 = the opening.
+- Nicknames that are not ordinary words: 狗 = spirit wolves (Feral Spirit), not dogs. 小炮 = Mortar Teams. 黄皮 = the yellow shop scroll (say "scroll", never "yellow skin"). 小典/小电 = a hero skill, usually lightning (Chain Lightning) or, on an Archmage, Brilliance Aura or Blizzard; not a player's name. 腹地 is not the Hinterlands. It is a mishear of 伏击 (an ambush), 附近 (nearby), or 墓地 (the graveyard). Pick from the line. Never say Hinterlands.
 - Short map codes (EI, TR, TM, AZ, TS, CH, and similar) are map names; keep the code."""
 
 
@@ -208,6 +220,83 @@ def is_skip_translation(text):
     t = str(text).strip().strip('"').strip("'").strip()
     t = re.sub(r"[。.\s]+$", "", t)
     return t == "" or re.fullmatch(r"\[skip\]", t, re.I) is not None
+
+
+def clean_spoken_english(text):
+    """Drop a trailing self-correction so the voice never says 'wait, no'."""
+    if not text:
+        return ""
+    t = str(text).strip().strip('"')
+    t = re.sub(r"(?is)\s*(?:\.\.\.|…)?\s*wait,\s*no\b.*$", "", t)
+    t = re.sub(r"(?is)\s*\(\s*wait\b.*?\)\s*$", "", t)
+    return t.strip()
+
+
+def take_live_segment(first, seg_q, max_lag, now=None):
+    """Drop segments older than max_lag. If several are waiting, keep only the newest.
+
+    Transcribing the oldest first makes each line wait out the whole backlog, so the
+    lag ratchets up on a busy cast. The stale ones are discarded before ASR.
+    """
+    now = time.time() if now is None else now
+    batch = [first]
+    while True:
+        try:
+            batch.append(seg_q.get_nowait())
+        except queue.Empty:
+            break
+    live = [s for s in batch if now - s[0] <= max_lag]
+    dropped = len(batch) - len(live)
+    if not live:
+        return None, dropped
+    if len(live) > 1:
+        dropped += len(live) - 1
+        return max(live, key=lambda s: s[0]), dropped
+    return live[0], dropped
+
+
+class Voice:
+    """Speak one line. After repeated Edge failures, stop calling Edge and use the fallback."""
+
+    def __init__(self, edge=None, eleven=None, say=None, fail_limit=2):
+        self.edge, self.eleven, self.say = edge, eleven, say
+        self.fail_limit = fail_limit
+        self.edge_fails = 0
+        self.edge_off = False
+        self._announced = False
+
+    def _disable_edge(self):
+        if self.edge_off:
+            return
+        self.edge_off = True
+        if self._announced:
+            return
+        self._announced = True
+        where = "ElevenLabs Flash via OpenRouter" if self.eleven else ("macOS say" if self.say else "no further voice")
+        log(f"Edge TTS disabled after {self.edge_fails} handshake failures; using {where}")
+
+    def __call__(self, text, rate="+0%"):
+        if not self.edge_off and self.edge is not None:
+            try:
+                pcm = self.edge(text, rate)
+                self.edge_fails = 0
+                return pcm
+            except Exception as e:
+                self.edge_fails += 1
+                log("edge-tts failed:", type(e).__name__)
+                if self.edge_fails >= self.fail_limit:
+                    self._disable_edge()
+        if self.eleven is not None:
+            try:
+                return self.eleven(text)
+            except Exception as e:
+                log("openrouter tts failed:", type(e).__name__)
+        if self.say is not None:
+            try:
+                return self.say(text)
+            except Exception as e:
+                log("say failed:", type(e).__name__)
+        return None
 
 
 def time_of(marks, idx):
@@ -427,7 +516,13 @@ class ASR:
         if self.mlx:
             import mlx_whisper
             self.m = mlx_whisper
-            self.name = model or "mlx-community/whisper-large-v3-mlx"
+            # large-v3 cannot keep up with back-to-back Mandarin casting. Turbo is the zh default.
+            if model:
+                self.name = model
+            elif self.lang == "zh":
+                self.name = "mlx-community/whisper-large-v3-turbo"
+            else:
+                self.name = "mlx-community/whisper-large-v3-mlx"
             self.m.transcribe(np.zeros(SR, np.float32), path_or_hf_repo=self.name, language=self.code)  # warm-up / download
         else:
             from faster_whisper import WhisperModel
@@ -846,6 +941,36 @@ def overdub_loop(tap_q, dub_q, stop, volume, device, latency, delay, duck, save)
         _write_wav(save, saved)
 
 
+def speak_loop(jobs, stop, voice, play_q, dub_q, stats):
+    """Synthesize while the main thread is already on the next line's ASR."""
+    while not stop.is_set():
+        try:
+            job = jobs.get(timeout=0.3)
+        except queue.Empty:
+            continue
+        if job is None:
+            break
+        age = time.time() - job["t_seg"]
+        if age > job["max_lag"]:
+            log(f"[skip, {age:.0f}s behind]")
+            continue
+        t0 = time.time()
+        pcm = voice(job["en"], job["rate"])
+        if pcm is None or len(pcm) == 0:
+            log(f"  - no audio for: {job['en'][:40]}")
+            continue
+        stats["tts"].append(time.time() - t0)
+        stats["chars"][0] += len(job["en"])
+        d = time.time() - job["t_seg"] - job["cmp_t"]
+        stats["lat"].append(d)
+        if job["dub"] is not None:
+            play_at = (job["t_start"] + job["overdub_delay"]) if job["t_start"] is not None else time.monotonic()
+            job["dub"].put((play_at, pcm))
+        else:
+            play_q.put(pcm)
+        log(f"{job['label']}: {job['text']}\n         EN: {job['en']}   (ready {d:.1f}s after speech ended)")
+
+
 # ---------------------------------------------------------------- main
 def build_parser():
     ap = argparse.ArgumentParser(description="Live Korean or Mandarin -> English voice dub for a stream URL")
@@ -857,7 +982,7 @@ def build_parser():
     ap.add_argument("--quality", default="worst",
                     help="stream quality (default worst). Douyu names look like 900k; worst is the lowest bitrate")
     ap.add_argument("--asr-model", "--model", dest="model", default=None,
-                    help="whisper model (default: mlx-community/whisper-large-v3-mlx on Apple Silicon; faster: mlx-community/whisper-large-v3-turbo, 'small' elsewhere)")
+                    help="whisper model (Apple Silicon default: large-v3 for Korean, large-v3-turbo for Mandarin; 'small' elsewhere)")
     ap.add_argument("--no-asr-prompt", action="store_true", help="disable the Warcraft 3 vocabulary prompt for Whisper")
     ap.add_argument("--asr-context", type=int, default=0,
                     help="also feed the last N (0-2) source-language lines to Whisper as context")
@@ -881,7 +1006,8 @@ def build_parser():
                     help="google = transcribe then translate (better); whisper = whisper's built-in translate")
     ap.add_argument("--llm-model", default="anthropic/claude-haiku-5.5", help="OpenRouter model slug")
     ap.add_argument("--compare", action="store_true", help="also show Google's translation for each line (testing)")
-    ap.add_argument("--max-lag", type=float, default=12.0, help="drop segments older than this many seconds")
+    ap.add_argument("--max-lag", type=float, default=8.0,
+                    help="before ASR, drop speech older than this many seconds and keep only the newest line if several are waiting")
     ap.add_argument("--mute", action="store_true", help="don't play audio, just print (testing)")
     ap.add_argument("--save", default=None, help="also write dubbed audio to this .wav")
     ap.add_argument("--duration", type=float, default=0, help="stop after N seconds (testing)")
@@ -911,15 +1037,37 @@ def main():
     llm_t = []
     import os
     ekey = os.environ.get("ELEVENLABS_API_KEY")
-    if a.tts == "eleven" and okey:
-        log("TTS:", a.tts_model, "voice", a.tts_voice, "via OpenRouter (Edge fallback)")
+    say = say_pcm if platform.system() == "Darwin" else None
+
+    def eleven(text, _rate=None):
+        err = None
+        if okey:
+            try:
+                return openrouter_tts_pcm(text, a.tts_model, a.tts_voice, okey)
+            except Exception as e:
+                err = e
+                log("openrouter tts failed:", type(e).__name__)
+        if ekey:
+            return eleven_pcm(text, a.eleven_voice, ekey)
+        if err:
+            raise err
+        raise RuntimeError("no eleven key")
+
+    have_eleven = bool(okey or ekey)
+    if a.tts == "eleven" and have_eleven:
+        voice = Voice(edge=None, eleven=eleven, say=say)
+        log("TTS:", a.tts_model if okey else "ElevenLabs direct", "voice", a.tts_voice if okey else a.eleven_voice)
     else:
-        log("TTS:", "ElevenLabs Flash v2.5" if ekey else "Edge neural voice " + a.voice)
+        if a.tts == "eleven":
+            log("no ElevenLabs key; using Edge")
+        voice = Voice(edge=lambda text, rate: tts_pcm(text, a.voice, rate),
+                      eleven=eleven if have_eleven else None, say=say)
+        log("TTS: Edge", a.voice, "(edge-tts>=7.3.1); fallback",
+            "ElevenLabs" if have_eleven else ("macOS say" if say else "none"))
     if a.overdub and a.tts != "eleven":
         log("overdub tip: --tts eleven uses ElevenLabs Flash v2.5 (voice george, same OpenRouter key) "
             "and usually finishes inside the hold")
-    tts_t = []
-    tts_chars = 0
+    stats = {"tts": [], "lat": [], "chars": [0]}
 
     stop = threading.Event()
     in_q, seg_q, play_q = queue.Queue(), queue.Queue(), queue.Queue()
@@ -937,21 +1085,25 @@ def main():
         threading.Thread(target=player, args=(
             play_q, stop, a.mute, a.volume, a.save, a.out_device, a.out_latency,
         ), daemon=True).start()
+    jobs = queue.Queue()
+    speaker = threading.Thread(target=speak_loop, args=(jobs, stop, voice, play_q, dub_q, stats), daemon=True)
+    speaker.start()
 
     t_end = time.time() + a.duration if a.duration else None
-    lat = []
     try:
         while not (t_end and time.time() > t_end):
             try:
-                t_seg, seg, t_start = seg_q.get(timeout=0.5)
+                got = seg_q.get(timeout=0.5)
             except queue.Empty:
                 continue
             if llm:
                 llm.add_stream_context(meta.get("title") or "", meta.get("author") or "")
-            age = time.time() - t_seg
-            if age > a.max_lag:
-                log(f"[skip, {age:.0f}s behind]")
+            got, dropped = take_live_segment(got, seg_q, a.max_lag)
+            if dropped:
+                log(f"[skip {dropped} behind]")
+            if got is None:
                 continue
+            t_seg, seg, t_start = got
             lang, text, nsp = asr.transcribe(seg)
             if not accept_transcript(lang, text, nsp, a.lang):
                 if text:
@@ -985,45 +1137,25 @@ def main():
                     en = translate_text(text, sl=prof["google"], pair=prof["mymemory"], script=prof["script"])
             if not en:
                 en = asr.translate(seg)
+            en = clean_spoken_english(en)
             if not en or en is SKIP or prof["script"].search(en) or not re.search(r"[A-Za-z]", en):
                 log(f"  - translation failed for: {text[:60]}")
                 continue
-            backlog = play_q.qsize() + seg_q.qsize()
+            backlog = jobs.qsize() + seg_q.qsize()
             rate = f"+{min(10 + 15 * backlog, 50)}%"
-            t_tts = time.time()
-            try:
-                if a.tts == "eleven" and okey:
-                    try:
-                        pcm = openrouter_tts_pcm(en, a.tts_model, a.tts_voice, okey)
-                    except Exception as e:
-                        log("openrouter tts failed:", type(e).__name__)
-                        pcm = tts_pcm(en, a.voice, rate)
-                elif ekey:
-                    try:
-                        pcm = eleven_pcm(en, a.eleven_voice, ekey)
-                    except Exception as e:
-                        log("elevenlabs failed:", type(e).__name__)
-                        pcm = tts_pcm(en, a.voice, rate)
-                else:
-                    pcm = tts_pcm(en, a.voice, rate)
-            except Exception as e:
-                log("edge-tts failed:", type(e).__name__)
-                if platform.system() != "Darwin":
-                    continue
-                pcm = say_pcm(en)
-            tts_t.append(time.time() - t_tts)
-            tts_chars += len(en)
-            if dub_q is not None:
-                play_at = (t_start + a.overdub_delay) if t_start is not None else time.monotonic()
-                dub_q.put((play_at, pcm))
-            else:
-                play_q.put(pcm)
-            d = time.time() - t_seg - (cmp_t if gt else 0)
-            lat.append(d)
-            log(f"{prof['label']}: {text}\n         EN: {en}   (ready {d:.1f}s after speech ended)")
+            jobs.put({
+                "t_seg": t_seg, "t_start": t_start, "text": text, "en": en, "cmp_t": cmp_t,
+                "rate": rate, "label": prof["label"], "max_lag": a.max_lag,
+                "dub": dub_q, "overdub_delay": a.overdub_delay,
+            })
     except KeyboardInterrupt:
         pass
+    jobs.put(None)
+    speaker.join(8)
     stop.set()
+    tts_t = stats["tts"]
+    lat = stats["lat"]
+    tts_chars = stats["chars"][0]
     if llm_t:
         log(f"LLM call time: median {np.median(llm_t):.2f}s, max {max(llm_t):.2f}s; "
             f"tokens in/out {llm.tokens_in}/{llm.tokens_out}, cost ${llm.cost:.5f} for {len(llm_t)} lines")

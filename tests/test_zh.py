@@ -3,6 +3,7 @@
 Run: uv run --with av --with numpy python tests/test_zh.py
 """
 import os
+import queue
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,6 +26,10 @@ def test_lang_filter():
     assert k.is_junk("字幕由 Amara.org 社群提供", "zh")
     assert k.is_junk("谢谢观看", "zh")
     assert not k.is_junk("这波分矿开得很快", "zh")
+    assert k.is_junk("一位玩家的陆队正遭到攻击", "zh")
+    assert not k.accept_transcript("zh", "一位玩家的陆队正遭到攻击", 0.1, "zh")
+    assert k.is_junk("优优独播剧场——YoYo Television Series Exclusive", "zh")
+    assert not k.is_junk("这没法练了，剑圣换边", "zh")
     # Korean path: same junk substrings, Hangul gate, default language.
     assert k.accept_transcript("ko", "소인 멀티 갔고 마킹이야", 0.1, "ko")
     assert not k.accept_transcript("ko", "시청해주셔서 감사합니다", 0.1, "ko")
@@ -56,6 +61,10 @@ def test_prompts_and_context():
         assert term in zh, term
     assert "Forsaken Paladin" in zh
     assert "Warcraft 3" in zh
+    for term in ("练级", "这没法练了", "黄皮", "小典", "腹地", "Hinterlands", "被网", "拉怪", "偷矿", "wait"):
+        assert term in zh, term
+    assert k.clean_spoken_english("He can't creep here. Wait, no. He's expanding.") == "He can't creep here."
+    assert "wait" not in k.clean_spoken_english("Switching to the side camps, wait, no, the middle.").lower()
     for term in ("포세이큰", "코셀빵", "투생템", "[skip]", "fragmentary", "previous lines"):
         assert term in ko, term
     # --context and the stream title are appended on a copy, not the shared prompt.
@@ -145,10 +154,85 @@ def test_sniff_and_cli():
     assert b.lang == "ko" and not b.overdub and b.context == ""
 
 
+def test_backlog_and_voice():
+    class Q:
+        def __init__(self, items):
+            self.items = list(items)
+        def get_nowait(self):
+            if not self.items:
+                raise queue.Empty
+            return self.items.pop(0)
+
+    import queue as queue_mod
+    now = 1000.0
+    stale = (now - 20, None, None)
+    older = (now - 3, "old", None)
+    newer = (now - 0.4, "new", None)
+    got, dropped = k.take_live_segment(stale, Q([older, newer]), 8, now=now)
+    assert dropped == 2 and got[1] == "new"
+    none, dropped = k.take_live_segment(stale, Q([(now - 30, "x", None)]), 8, now=now)
+    assert none is None and dropped == 2
+
+    calls = {"edge": 0, "eleven": 0}
+
+    def edge(text, rate):
+        calls["edge"] += 1
+        raise RuntimeError("WSServerHandshakeError")
+
+    def eleven(text, rate=None):
+        calls["eleven"] += 1
+        return "pcm"
+
+    voice = k.Voice(edge=edge, eleven=eleven, say=None, fail_limit=2)
+    assert voice("a") == "pcm" and calls["edge"] == 1 and calls["eleven"] == 1
+    assert voice("b") == "pcm" and calls["edge"] == 2
+    assert voice("c") == "pcm" and calls["edge"] == 2 and calls["eleven"] == 3
+
+    # Replay of the Mac timings: a line every 3s, each one 1.55s ASR + 0.8s LLM + 1.65s TTS.
+    # The old loop speaks every line in order, so the lag climbs. The new loop keeps the
+    # newest line and overlaps TTS with the next ASR, so the lag stays one cycle.
+    def climb(n=30, interval=3.0, asr=1.55, llm=0.8, tts=1.65, max_lag=12.0, newest=False, overlap=False):
+        ends = [i * interval for i in range(n)]
+        t = 0.0
+        tts_free = 0.0
+        ready = []
+        i = 0
+        while i < n:
+            if t < ends[i]:
+                t = ends[i]
+            avail = [e for e in ends[i:] if e <= t]
+            if not avail:
+                t = ends[i]
+                continue
+            live = [e for e in avail if t - e <= max_lag]
+            if not live:
+                i += len(avail)
+                continue
+            chosen = max(live) if newest else live[0]
+            i = ends.index(chosen) + 1
+            t += asr + llm
+            if overlap:
+                audio = max(t, tts_free) + tts
+                tts_free = audio
+            else:
+                t += tts
+                audio = t
+            ready.append(audio - chosen)
+        return ready
+
+    old = climb()
+    new = climb(newest=True, overlap=True, max_lag=8.0)
+    assert max(new) < max(old)
+    assert max(new) < 8
+    print(f"sim old median {sorted(old)[len(old)//2]:.1f}s max {max(old):.1f}s n={len(old)}")
+    print(f"sim new median {sorted(new)[len(new)//2]:.1f}s max {max(new):.1f}s n={len(new)}")
+
+
 if __name__ == "__main__":
     test_lang_filter()
     test_hallucination()
     test_prompts_and_context()
     test_clock_delay_and_mix()
     test_sniff_and_cli()
+    test_backlog_and_voice()
     print("ok")

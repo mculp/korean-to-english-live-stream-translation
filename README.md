@@ -100,7 +100,7 @@ Both scripts:
 - `--voice en-US-GuyNeural`: Edge TTS voice (`uv run --with edge-tts edge-tts --list-voices`)
 - `--volume 1.0`, `--out-device <name|index>`, `--out-latency 0.4` (raise if audio crackles)
 - `--translator google|whisper`: `whisper` uses Whisper's built-in translate (offline, lower quality)
-- `--max-lag 12`: drop speech segments that are more than N seconds behind
+- `--max-lag 8`: before speech recognition, drop lines older than N seconds. If several are waiting, only the newest is transcribed, so a busy cast does not fall further behind.
 - `--eleven-voice <voice_id>`: voice for direct ElevenLabs (needs `ELEVENLABS_API_KEY`). Default is George.
 - `--mute --duration 60 --save out.wav`: test mode (print only, stop after N s, write the dub to a wav)
 
@@ -109,7 +109,7 @@ Both scripts:
 
 `kodub_llm.py` only:
 - `--context "Fly100% vs Lyn, Bo3"`: matchup or anything else the translator should trust. The stream title and streamer name are added automatically when streamlink returns them.
-- `--asr-model` / `--model`: Whisper model (default `mlx-community/whisper-large-v3-mlx`; `mlx-community/whisper-large-v3-turbo` is faster but less accurate)
+- `--asr-model` / `--model`: Whisper model. Korean default on Apple Silicon is `mlx-community/whisper-large-v3-mlx`. Mandarin default is `mlx-community/whisper-large-v3-turbo`, because large-v3 cannot keep up with back-to-back casting. Pass `--asr-model mlx-community/whisper-large-v3-mlx` to force the slower model.
 - `--no-asr-prompt`: disable the Warcraft 3 vocabulary prompt fed to Whisper
 - `--asr-context 0..2`: also feed the last N source-language lines to Whisper
 - `--llm-model anthropic/claude-haiku-5.5`: any OpenRouter chat model slug
@@ -124,18 +124,18 @@ streamlink (MPEG-TS or FLV) → PyAV decode → 16 kHz mono float32
   → Silero VAD segmenter (cuts speech segments, ≤12 s)
   → Whisper (MLX) transcribe + language ID
   → filter: language matches --lang, ≥2 Hangul or Han characters, low no-speech prob,
-    not a known hallucination / prompt echo / subtitle credit
+    not a known hallucination / prompt echo / subtitle credit / in-game announcer line
   → translate (Haiku via OpenRouter with the last 5 lines, glossary, and match context
     → Google → MyMemory → Whisper translate). The model may answer [skip] for noise.
   → TTS (ElevenLabs Flash v2.5 via OpenRouter / ElevenLabs direct / Edge / macOS `say`)
   → Speaker, or with --overdub a delay line that ducks the stream under the English
 ```
 
-Stages run in threads connected by queues. ASR, translation and TTS run in the main loop.
+Stages run in threads connected by queues. Speech recognition and translation run on the main thread. TTS runs beside them, so the next line can be transcribed while the current one is being spoken. Edge TTS is `edge-tts` 7.3.1 or newer (the release that sends Microsoft's current handshake token). If that handshake fails twice, Edge is turned off for the rest of the run and the voice falls through to ElevenLabs (OpenRouter key, then a direct ElevenLabs key) and then macOS `say`.
 
 ### Latency
 
-Normal mode, on Apple Silicon with the default large-v3 model, Haiku, and Edge: about 3–3.5 seconds from the end of a line until the English audio is ready. That number is the one this project already measured on a Mac. A Linux check against LioN's live Douyu room, with faster-whisper `small` on CPU, Google (no OpenRouter key), and Edge, was faster than that Mac figure: median 2.6s from speech end to English ready (8 lines, max 4.0s), of which Edge TTS was median 0.45s. Treat the Mac large-v3 + Haiku number as the one to expect at the laptop. `--tts eleven` (Flash v2.5, voice George) is the low-latency voice; Flash's model time is a small fraction of a second, and Edge's round trip is usually the slower TTS. The browser picture stays live. There is no extra hold.
+A Mac run with large-v3, Haiku, and a broken Edge handshake (so every line used `say`) climbed from about 4 seconds to 12–15 seconds: median 7.6s, max 15.2s. Haiku itself was 0.8s and TTS 1.65s, so recognition was about 1.5s and one full line was slower than the caster. The loop still spoke the oldest line first, and the debt piled up. Replaying those costs (a line every 3 seconds, 1.55s recognition, 0.8s Haiku, 1.65s TTS, 30 lines) on the old in-order loop gives median 14.0s, max 16.0s. The same replay, keeping only the newest line and speaking it while the next line is recognized, stays at 4.0s median and max. It does not climb. With Edge's handshake fixed, TTS is closer to the 0.45s measured here than to the 1.65s `say` fallback, which brings that one-cycle figure down near 2.8s. Mandarin on Apple Silicon now defaults to whisper-large-v3-turbo so recognition itself is shorter than large-v3. The number printed on exit is still speech-end to English-audio-ready.
 
 Overdub mode lags the live picture by `--overdub-delay` (default 7s) plus the output buffer (`--out-latency`, default 0.4s, and whatever Core Audio actually reports). The English is scheduled at the start of the original line inside that delayed mix. A line fits when its length plus the processing time above stays under the hold. Longer lines start the English late; the log says by how much. On exit, kodub prints the processing time it actually measured and the overdub lag it is using.
 
