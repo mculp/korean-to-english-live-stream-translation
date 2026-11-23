@@ -183,6 +183,13 @@ def test_youtiao_cast_vocab():
     assert "the Night Elf hero" in zh and "Night Elf king" in zh
     assert "Dragonhawk" in zh and "not a Hippogryph" in zh
     assert "AC = archers" in zh and "高等级的窝等" in zh
+    assert "来福" in zh and "never Fortune" in zh and "ColorFul" in zh
+    assert k.is_junk("那我弄完我就把小鹿下了", "zh")
+    assert not k.accept_transcript("zh", "那我弄完我就把小鹿下了", 0.1, "zh")
+    assert k.is_junk("然后踩车城市卖完,我直接把安静档杀播啊…你是不是开了OF啊", "zh")
+    assert not k.is_junk("1个小鹿", "zh")
+    assert not k.is_junk("那个龙鹰A小鹿", "zh")
+    assert "Life goes into his complete form" in zh or "完全体" in zh
 
 
 def test_heroes_stay_consistent():
