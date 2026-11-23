@@ -162,13 +162,41 @@ def test_youtiao_cast_vocab():
     for bit in (
         "大优", "大U", "big advantage", "曼皇", "阵王", "losing the Archmage",
         "古树杯", "Ancient of Wonders", "休赛期", "屠了一波", "razed",
-        "鹿/小鹿 = Dryad", "精灵王", "Demigod", "啡啡熊", "比亚", "Beast Master",
-        "练金到2了", "交TP", "120 = Eer0", "Life = the player Life", "DotA",
-        "窝团", "not \"big U\"",
+        "鹿/小鹿 = Dryad", "精灵王", "Demigod", "啡啡熊", "比亚", "never Beastmaster",
+        "练金到2了", "Alchemist hit level 2", "交TP", "120 = Eer0", "Life = the player Life", "DotA",
+        "窝团", "not \"big U\"", "火焰领主", "啪啪熊", "黑暗游侠", "深渊领主", "修补匠",
+        "兽王 = Beastmaster", "比亚 is not 兽王",
     ):
         assert bit in zh, bit
     assert "小鹿/KOG = Keeper" not in zh
     assert "浪漫还是大U啊" in zh
+    assert "the Night Elf hero" in zh and "Night Elf king" in zh
+    assert "Dragonhawk" in zh and "not a Hippogryph" in zh
+    assert "AC = archers" in zh and "高等级的窝等" in zh
+
+
+def test_heroes_stay_consistent():
+    ctx = "Human Fortitude with Archmage, no Paladin; NE Colorful with Warden, no Keeper"
+    note = k.match_brief([ctx, "帕拉丁来了", "1个小鹿", "高等级的窝等", "那个龙鹰A小鹿"])
+    assert "Archmage" in note and "Warden" in note
+    assert "Do not say Paladin" in note
+    assert "Do not say Keeper" in note
+    assert 'the Night Elf hero' in note
+    assert "one Dryad" in note and "two archers and a Dryad" in note
+    assert "high-level Warden" in note
+    assert "Dragonhawk Rider" in note and "not a Hippogryph" in note
+    assert "killing the Dragonhawks" in note
+    assert "AC = archers" in note
+    # A real Paladin game may still say Paladin. 帕拉丁 alone must not invent one.
+    pal = k.match_brief(["Human Paladin vs Undead DK"])
+    assert "帕拉丁 = Paladin" in pal
+    assert "Paladin" in k.confirmed_heroes(["Human Paladin vs Undead DK"])[0]
+    assert "Paladin" not in k.confirmed_heroes(["帕拉丁来了"])[0]
+    # 练金/炼金 is the Goblin Alchemist. With that hero on screen, 帕拉丁 is him, not a Paladin.
+    assert "Alchemist" in k.confirmed_heroes(["练金到2了"])[0]
+    alch = k.match_brief(["Human Fortitude, Archmage and 炼金, no Paladin"])
+    assert "帕拉丁 means the Alchemist" in alch
+    assert "Do not say Paladin" in alch
 
 
 def test_dog_follows_the_races():
@@ -279,6 +307,7 @@ if __name__ == "__main__":
     test_hallucination()
     test_prompts_and_context()
     test_youtiao_cast_vocab()
+    test_heroes_stay_consistent()
     test_dog_follows_the_races()
     test_clock_delay_and_mix()
     test_sniff_and_cli()

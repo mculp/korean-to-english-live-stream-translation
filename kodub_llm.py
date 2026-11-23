@@ -109,10 +109,10 @@ Player handles: Infi, Fly100% (also Fly, 百分百), TH000 (also TH), Lyn, Moon,
 
 Warcraft 3 glossary, as Chinese casters say it:
 - Races: 人族 = Human, 兽族 = Orc, 亡灵/不死族 = Undead, 暗夜 = Night Elf. Do not translate 精灵 as "Night Elves".
-- Heroes: 大法/大法师 = Archmage, 山丘 = Mountain King, 圣骑 = Paladin, 血法 = Blood Mage, 剑圣 = Blademaster, 先知 = Far Seer, 牛头/酋长 = Tauren Chieftain, 暗猎/暗影猎手 = Shadow Hunter, 死骑/死亡骑士 = Death Knight, 巫妖 = Lich, 恐惧 = Dreadlord, 地穴 = Crypt Lord, 恶猎/恶魔猎手 = Demon Hunter, 守望/守望者 = Warden (ASR often hears 窝团 or 窝等), 月女/月骑 = Priestess of the Moon, 精灵王 = the Keeper of the Grove or the main hero, never a Demigod; say "Keeper" only when that is clear, otherwise "the hero". 熊猫/啡啡熊 = Pandaren Brewmaster. 炼金术士 = Alchemist. 火领 = Firelord, 修补 = Tinker, 娜迦 = Naga Sea Witch, 被遗忘者圣骑士/遗忘骑 = Forsaken Paladin (the new tavern hero). 比亚 is unknown: transliterate Biya or drop it. Never invent Beast Master.
-- Units: 火枪 = Riflemen, 破法 = Spell Breakers, 牧师 = Priests, 女巫 = Sorceress, 民兵 = Militia, 农民 = Peasants, 苦工 = Peons, 大G = Grunts, 猎头 = Headhunters, 狂战 = Berserkers, 狼骑 = Raiders, 蝙蝠 = Batriders, 牛 = Tauren, 飞龙 = Wyverns, 食尸鬼 = Ghouls, 蜘蛛 = Crypt Fiends, 雕像/石像鬼 = Gargoyles, 胖子 = Abomination (the unit, not a hero), 冰龙 = Frost Wyrms, 女妖 = Banshees, 女猎 = Huntresses, 弓箭 = Archers, 鹿/小鹿 = Dryad, not the Keeper. 树妖 = Dryads. 奇美拉 = Chimeras, 大山 = Mountain Giants, 角鹰 = Hippogryphs, 毁灭 = Destroyer (the unit 毁灭者, not the abstract word "destruction"), 飞机 = flying machine / gyrocopter, not an airplane. 精灵 in a fight is archers, huntresses, or wisps from context, not the words "Night Elves". The race name is 暗夜.
+- Heroes already named in the match are the only heroes. The note under this prompt lists them. A new hero name that contradicts that list is ASR noise: drop it or say "the hero". Say Paladin only if 圣骑/Paladin is already on that list; otherwise 帕拉丁 is noise for 怕了吧 or 拜拜. 守望/守望者/窝团/窝等 = Warden. 高等级的窝等 = a high-level Warden, not tier-two tech. 大法/大法师 = Archmage, 山丘 = Mountain King, 血法 = Blood Mage, 剑圣 = Blademaster, 先知 = Far Seer, 死骑 = Death Knight, 月女 = Priestess of the Moon, 恶猎 = Demon Hunter, 熊猫/啪啪熊/啡啡熊 = Pandaren Brewmaster. 被遗忘者圣骑士/遗忘骑 = Forsaken Paladin. 精灵王/金灵王 = "the Night Elf hero", never "Night Elf king", never Keeper, never Demigod. Tavern heroes: 炼金/炼金术士/练金 = Goblin Alchemist, a healer. 炼金到2了 and 练金到2了 = the Alchemist hit level 2, not gold and not creeping. 火焰领主 = Firelord (火女 is not Firelord). 黑暗游侠 = Dark Ranger. 娜迦 = Naga Sea Witch. 兽王 = Beastmaster. 比亚 is not 兽王: transliterate Biya or drop it, never Beastmaster. 修补匠 = Tinker. 深渊领主 = Pit Lord. 帕拉丁 is Paladin only when a Paladin (圣骑) is already in this game; otherwise, if the Alchemist is in the game and the line is about that healer, 帕拉丁 means the Alchemist.
+- Units: 火枪 = Riflemen, 破法 = Spell Breakers, 牧师 = Priests, 女巫 = Sorceress, 民兵 = Militia, 农民 = Peasants, AC = archers (the Archer unit, not the letters). 苦工 = Peons, 大G = Grunts, 猎头 = Headhunters, 狼骑 = Raiders, 飞龙 = Wyverns, 食尸鬼 = Ghouls, 蜘蛛 = Crypt Fiends, 胖子 = Abomination (the unit, not a hero), 女猎 = Huntresses, 弓箭 = Archers, 鹿/小鹿 = Dryad, never Keeper of the Grove. 1个小鹿 = one Dryad. 两个精灵一个鹿 = two archers and a Dryad. 树妖 = Dryads. 角鹰 = Hippogryphs. 龙鹰 = Dragonhawk Rider (Human air), not a Hippogryph. 那个龙鹰A小鹿 = that Dragonhawk attacks the Dryad. 屠龙 = killing the Dragonhawks, not slaying a dragon. 毁灭 = Destroyer (the unit), 飞机 = flying machine / gyrocopter. 精灵 in a fight is archers, huntresses, or wisps, not "Night Elves".
 - Buildings and tech: 基地 = main, 兵营 = barracks, 祭坛 = altar, 二本 = tier 2, 三本 = tier 3, 升本 = teching up, 科技 = tech, 塔/箭塔/炮塔 = tower, 商店 = shop, 眼/守卫 = ward.
-- Creeping: 练/练级/练怪/练金 = creeping, leveling the hero on neutral creeps. It does not mean practice, training, or gold. 练金到2了 / 练到N级 = creeped to level N. 这没法练了 = he can't creep here anymore. 这里不练了 = not creeping here anymore. 转而练边上 / 练边上 = switching to creep the side camps. 拉怪 = pulling creeps. 刷野/打野 = creeping too.
+- Creeping: 练/练级/练怪 = creeping, leveling a hero on neutral creeps. It does not mean practice or training. 练到N级 = creeped to level N. 这没法练了 = he can't creep here anymore. 这里不练了 = not creeping here anymore. 转而练边上 / 练边上 = switching to creep the side camps. 拉怪 = pulling creeps. 刷野/打野 = creeping too. 练金 is not creeping and not gold: it is the Alchemist (see tavern heroes).
 - Slang: 分矿/开矿/二矿 = taking an expansion, 主矿 = main gold, 单矿 = one-base, 偷矿 = sniping or denying that expansion, 偷家/换家 = base trade, 运营 = macro, 一波 = all-in, 打架/团战 = fight, 抓 = picking a unit or hero off, 秒 = bursting something down instantly, 网/被网 = netted or ensnared (crypt fiend web or raider net), 骚扰/牵制 = harass, 微操 = micro, 卡兵 = body block, 集火 = focus, 风筝 = kite, 残血 = low HP, 人口 = supply, 爆兵 = a timing push, 攻防/1-1 = attack and armor upgrades, 三级 = hero level 3, 三三 = both heroes level 3, 买活 = buying a revive, 回城/TP = town portal, 圣盾 = Divine Shield, 无敌 = invulnerability potion, 隐身 = invisibility potion, 爪子 = claws, 鞋子 = boots, 圆环 = circlet, 翻盘 = a comeback, 后期 = late game, 开局 = the opening.
 - 狗/狗子/小狗 is not always spirit wolves. Casters use it loosely. Obey the race note added under this prompt for the current line: ghouls when Undead is on screen and Orc is not; spirit wolves only when Orc or a Far Seer is on screen and Undead is not; if both races are on screen, ghouls when the line is about the Undead army and wolves only when it is the Far Seer's wolves; if neither race is on screen, say "dog" and do not invent a unit. 切狗 means focus or kill those units, not "switch the build into wolves".
 - A lone Latin letter is a hotkey. 换你的C / C过以后 is Death Coil (死亡缠绕) or that hero's C hotkey, not Crypt Fiends, unless the line actually says 蜘蛛.
@@ -165,9 +165,9 @@ def dog_reading(board):
     return "dog"
 
 
-def match_brief(texts):
-    """One note for this line: races seen in the rolling window, and what 狗 means right now."""
-    board = scan_board("\n".join(t for t in texts if t))
+def match_brief(texts, current=""):
+    """Races may be named in this line. Heroes are only those already established before it."""
+    board = scan_board("\n".join(t for t in list(texts) + [current] if t))
     races = []
     if board["human"]:
         races.append("Human")
@@ -188,7 +188,85 @@ def match_brief(texts):
         dog = "Both Undead and Orc are on screen. 狗 with the Undead army means ghouls; 狗 with a Far Seer means spirit wolves. Do not default to wolves."
     else:
         dog = '狗/狗子 means "dog". Do not invent ghouls or spirit wolves.'
-    return seen + " " + dog
+    return seen + " " + dog + " " + hero_note(texts)
+
+
+# Confirmed heroes come from --context and earlier lines, not from the line being translated.
+_HEROES = (
+    ("Archmage", ("大法师", "大法", "archmage")),
+    ("Mountain King", ("山丘之王", "山丘", "mountain king")),
+    ("Paladin", ("圣骑士", "圣骑", "paladin")),
+    ("Blood Mage", ("血法师", "血法", "blood mage")),
+    ("Blademaster", ("剑圣", "blademaster")),
+    ("Far Seer", ("先知", "far seer", "farseer")),
+    ("Death Knight", ("死亡骑士", "死骑", "death knight")),
+    ("Warden", ("守望者", "守望", "窝团", "窝等", "warden")),
+    ("Keeper of the Grove", ("丛林守护者", "keeper of the grove", "keeper")),
+    ("Priestess of the Moon", ("月之女祭司", "月女", "月骑")),
+    ("Demon Hunter", ("恶魔猎手", "恶猎", "demon hunter")),
+    ("Pandaren Brewmaster", ("熊猫酒仙", "啪啪熊", "啡啡熊", "熊猫", "brewmaster")),
+    ("Alchemist", ("炼金术士", "炼金", "练金", "alchemist")),
+    ("Firelord", ("火焰领主", "火领", "firelord")),
+    ("Dark Ranger", ("黑暗游侠", "dark ranger")),
+    ("Naga Sea Witch", ("娜迦海巫", "娜迦", "naga")),
+    ("Beastmaster", ("兽王", "beastmaster")),
+    ("Tinker", ("修补匠", "修补", "tinker")),
+    ("Pit Lord", ("深渊领主", "pit lord")),
+)
+_HERO_BANS = (
+    ("Paladin", ("no paladin", "没有圣骑", "没有帕拉丁")),
+    ("Keeper of the Grove", ("no keeper", "没有keeper")),
+)
+
+
+def _alias_in(blob, alias):
+    al = alias.lower()
+    if al.isascii():
+        return re.search(r"\b" + re.escape(al) + r"\b", blob) is not None
+    return al in blob
+
+
+def confirmed_heroes(texts):
+    """Heroes named before this line, minus any the listener explicitly ruled out."""
+    blob = "\n".join(t for t in texts if t).lower()
+    banned = set()
+    for name, phrases in _HERO_BANS:
+        for phrase in phrases:
+            if phrase.lower() in blob:
+                banned.add(name)
+                blob = blob.replace(phrase.lower(), " ")
+    found = []
+    for name, aliases in _HEROES:
+        if name in banned:
+            continue
+        if any(_alias_in(blob, alias) for alias in sorted(aliases, key=len, reverse=True)):
+            found.append(name)
+    return found, banned
+
+
+def hero_note(texts):
+    """Tell the model which heroes are real in this game, and the names that are ASR noise."""
+    found, banned = confirmed_heroes(texts)
+    parts = []
+    if found:
+        parts.append("Heroes already in this game: " + ", ".join(found) + ". Use only these hero names.")
+        parts.append("A different hero name contradicts them: say \"the hero\" or drop it.")
+    else:
+        parts.append("No hero is locked in yet.")
+    if "Paladin" in found:
+        parts.append("帕拉丁 = Paladin, because a Paladin is already in this game.")
+    elif "Alchemist" in found:
+        parts.append("Do not say Paladin. 帕拉丁 means the Alchemist, the healer already in this game, not a Paladin.")
+    else:
+        parts.append("Do not say Paladin. 帕拉丁 is ASR noise (怕了吧 / 拜拜) unless 圣骑 was already established. If the hero is a healer, it is the Alchemist, not a Paladin.")
+    if "Keeper of the Grove" not in found or "Keeper of the Grove" in banned:
+        parts.append("Do not say Keeper of the Grove.")
+    parts.append('精灵王/金灵王 = "the Night Elf hero", never "Night Elf king", never Keeper, never Demigod.')
+    parts.append("小鹿/鹿 = Dryad, never Keeper. 1个小鹿 = one Dryad. 两个精灵一个鹿 = two archers and a Dryad.")
+    parts.append("窝等/窝团 = Warden. 高等级的窝等 = a high-level Warden, not tier-two tech.")
+    parts.append("龙鹰 = Dragonhawk Rider, not a Hippogryph. 那个龙鹰A小鹿 = that Dragonhawk attacks the Dryad. 屠龙 = killing the Dragonhawks, not slaying a dragon.")
+    parts.append("AC = archers.")
+    return " ".join(parts)
 
 
 def _prompt_terms(prompt):
@@ -715,8 +793,8 @@ class LLMTranslator:
         self._stream_note = True
 
     def note_for(self, text):
-        return match_brief([self.extra_context, self.stream_title, self.stream_author,
-                            *self.recent, text])
+        # The line being translated must not confirm a new hero by itself.
+        return match_brief([self.extra_context, self.stream_title, self.stream_author, *self.recent], text)
 
     def messages_for(self, text):
         system = self.system + "\n\n" + self.note_for(text)
