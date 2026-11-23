@@ -1,19 +1,24 @@
 # /// script
 # requires-python = ">=3.11,<3.13"
 # dependencies = [
-#   "streamlink>=7",
+#   "streamlink>=8.5",
 #   "av",
 #   "numpy",
 #   "sounddevice",
 #   "silero-vad",
-#   "edge-tts",
+#   "edge-tts>=7.3.1",
 #   "mlx-whisper; sys_platform == 'darwin' and platform_machine == 'arm64'",
 #   "faster-whisper; sys_platform != 'darwin' or platform_machine != 'arm64'",
 # ]
 # ///
-"""kodub: live Korean -> English voice dub for SOOP/AfreecaTV (or any streamlink-supported) streams.
+"""kodub: live Korean or Mandarin -> English voice dub for streamlink streams.
 
-Only speech recognised as Korean is dubbed; English speech and non-speech game audio are skipped.
+Korean is the default. Mandarin Warcraft 3 (Douyu, Huya, Douyin) uses --lang zh.
+Streamlink 8.5+ has those plugins; the opener sniffs FLV vs MPEG-TS.
+
+Only speech recognised as the chosen source language is dubbed. English speech and
+non-speech game audio are skipped. For the Warcraft 3 glossary and --context / --overdub,
+use kodub_llm.py.
 """
 import argparse, asyncio, io, platform, queue, re, sys, threading, time
 
@@ -22,8 +27,62 @@ import numpy as np
 
 SR = 16000
 HANGUL = re.compile(r"[\uac00-\ud7a3]")
+HAN = re.compile(r"[\u4e00-\u9fff]")
 # Common Whisper hallucinations on music/silence
 JUNK = ["시청해주셔서", "구독과 좋아요", "MBC 뉴스", "자막", "감사합니다.", "다음 영상에서"]
+ZH_JUNK_RES = [
+    re.compile(r"字幕由.{0,40}提供"),
+    re.compile(r"请不吝点赞"),
+    re.compile(r"订阅[,，、\s]*转发"),
+    re.compile(r"转发[,，、\s]*打赏"),
+    re.compile(r"明镜与点点"),
+    re.compile(r"点点栏目"),
+    re.compile(r"感谢您的?(观看|收看)"),
+    re.compile(r"谢谢观看"),
+    re.compile(r"感谢收看"),
+    re.compile(r"下期再见"),
+    re.compile(r"本期视频"),
+    re.compile(r"字幕组"),
+    re.compile(r"中文字幕"),
+    re.compile(r"优优独播"),
+    re.compile(r"Amara\.org", re.I),
+    re.compile(r"我的频道"),
+    re.compile(r"欢迎订阅"),
+    re.compile(r"打赏支持"),
+    re.compile(r"支持明镜"),
+    re.compile(r"优优独播剧场"),
+    re.compile(r"独播剧场"),
+    re.compile(r"YoYo Television", re.I),
+    re.compile(r"正遭到攻击"),
+    re.compile(r"(你的|一位玩家的).{0,8}(部队|陆队|基地|工人|建筑)"),
+    re.compile(r"需要更多的"),
+    re.compile(r"不能在那里建造"),
+]
+ZH_ASR_PROMPT = (
+    "魔兽争霸3解说. Infi, Fly100%, TH000, Lyn, Moon, 120, LawLiet, Colorful, YouTiao, 油条, eer0, LioN, Happy, Fortitude, Sok. "
+    "人族, 兽族, 亡灵, 暗夜, 大法师, 山丘, 剑圣, 死骑, 恶魔猎手, 小鹿, 月女, 遗忘骑, 分矿, 二本, 三本, 偷家."
+)
+LANGS = {
+    "ko": {"whisper": "ko", "script": HANGUL, "google": "ko", "mymemory": "ko|en", "label": "KO"},
+    "zh": {"whisper": "zh", "script": HAN, "google": "zh-CN", "mymemory": "zh-CN|en", "label": "ZH"},
+}
+
+
+def norm_lang(lang):
+    if not lang:
+        return "?"
+    lang = str(lang).lower().replace("_", "-")
+    if lang in ("zh", "zh-cn", "zh-hans", "chinese", "cmn", "mandarin"):
+        return "zh"
+    if lang in ("ko", "korean"):
+        return "ko"
+    return lang.split("-")[0]
+
+
+def is_junk(text, lang):
+    if lang == "ko":
+        return any(j in (text or "") for j in JUNK)
+    return any(r.search(text or "") for r in ZH_JUNK_RES)
 
 
 def log(*a):
@@ -37,19 +96,71 @@ class _FD:
     def readable(self): return True
 
 
+class _Prefixed:
+    def __init__(self, head, fd):
+        self._head = head or b""
+        self._fd = fd
+
+    def read(self, n=-1):
+        if n is None or n < 0:
+            n = 65536
+        out = b""
+        if self._head:
+            take = self._head[:n]
+            self._head = self._head[n:]
+            out = take
+            if len(out) >= n:
+                return out
+            n -= len(out)
+        chunk = self._fd.read(n)
+        return out + (chunk or b"")
+
+    def readable(self):
+        return True
+
+
+def sniff_container(fd):
+    """Douyu, Huya and Douyin are FLV. SOOP/Afreeca via streamlink is MPEG-TS."""
+    head = b""
+    while len(head) < 4:
+        b = fd.read(4 - len(head))
+        if not b:
+            break
+        head += b
+    if head.startswith(b"FLV"):
+        fmt = "flv"
+    elif head.startswith(b"OggS"):
+        fmt = "ogg"
+    elif head.startswith(b"RIFF"):
+        fmt = "wav"
+    elif head[:1] == b"\x47":
+        fmt = "mpegts"
+    else:
+        fmt = "mpegts"
+        if head:
+            log(f"unrecognized stream header {head[:8]!r}; trying mpegts")
+    return fmt, _Prefixed(head, fd)
+
+
 def audio_source(url, quality, out_q, stop):
     """Pull the live stream with streamlink, decode audio to 16 kHz mono float32 and push into out_q."""
     import streamlink
     while not stop.is_set():
         try:
-            streams = streamlink.Streamlink().streams(url)
+            session = streamlink.Streamlink()
+            session.set_option("http-timeout", 20)
+            streams = session.streams(url)
             if not streams:
                 log("stream offline / no streams, retrying in 15s"); time.sleep(15); continue
-            st = streams.get(quality) or streams["worst"]
-            fd = st.open()
-            c = av.open(_FD(fd), format="mpegts")
+            picked = quality if quality in streams else ("worst" if "worst" in streams else next(iter(streams)))
+            raw = streams[picked].open()
+            fmt, replay = sniff_container(_FD(raw))
+            log(f"connected ({picked}, {fmt})")
+            kwargs = {"format": fmt}
+            if fmt == "flv":
+                kwargs["options"] = {"fflags": "nobuffer", "flags": "low_delay"}
+            c = av.open(replay, **kwargs)
             rs = av.AudioResampler(format="flt", layout="mono", rate=SR)
-            log(f"connected ({quality})")
             for frame in c.decode(audio=0):
                 if stop.is_set(): break
                 for f in rs.resample(frame):
@@ -87,64 +198,77 @@ def segmenter(in_q, seg_q, stop, max_len=12.0, min_len=0.6):
 
 # ---------------------------------------------------------------- ASR
 class ASR:
-    def __init__(self, model):
+    def __init__(self, model, lang="ko"):
         self.mlx = platform.system() == "Darwin" and platform.machine() == "arm64"
+        self.lang = lang if lang in LANGS else "ko"
+        self.code = LANGS[self.lang]["whisper"]
         if self.mlx:
             import mlx_whisper
             self.m = mlx_whisper
             self.name = model or "mlx-community/whisper-large-v3-turbo"
             # warm-up / download
-            self.m.transcribe(np.zeros(SR, np.float32), path_or_hf_repo=self.name, language="ko")
+            self.m.transcribe(np.zeros(SR, np.float32), path_or_hf_repo=self.name, language=self.code)
         else:
             from faster_whisper import WhisperModel
             self.name = model or "small"
             self.m = WhisperModel(self.name, device="cpu", compute_type="int8")
 
+    def _prompt(self):
+        # Korean kodub.py never biased Whisper; only Mandarin gets a vocabulary prompt.
+        return ZH_ASR_PROMPT if self.lang == "zh" else None
+
     def transcribe(self, audio):
         """returns (lang, text, no_speech_prob)"""
+        ip = self._prompt()
         if self.mlx:
-            r = self.m.transcribe(audio, path_or_hf_repo=self.name, condition_on_previous_text=False,
-                                  temperature=0.0, verbose=None)
+            kw = dict(path_or_hf_repo=self.name, condition_on_previous_text=False, temperature=0.0, verbose=None)
+            if ip:
+                kw["initial_prompt"] = ip
+            r = self.m.transcribe(audio, **kw)
             segs = r.get("segments", [])
             nsp = min([s.get("no_speech_prob", 0) for s in segs] or [1])
-            return r.get("language"), r.get("text", "").strip(), nsp
-        segs, info = self.m.transcribe(audio, beam_size=1, condition_on_previous_text=False, vad_filter=False)
+            return norm_lang(r.get("language")), r.get("text", "").strip(), nsp
+        kw = dict(beam_size=1, condition_on_previous_text=False, vad_filter=False)
+        if ip:
+            kw["initial_prompt"] = ip
+        segs, info = self.m.transcribe(audio, **kw)
         segs = list(segs)
         nsp = min([s.no_speech_prob for s in segs] or [1])
-        lang = info.language if info.language_probability >= 0.5 else "?"
+        lang = norm_lang(info.language if info.language_probability >= 0.5 else "?")
         return lang, "".join(s.text for s in segs).strip(), nsp
 
     def translate(self, audio):
         if self.mlx:
-            return self.m.transcribe(audio, path_or_hf_repo=self.name, language="ko", task="translate",
+            return self.m.transcribe(audio, path_or_hf_repo=self.name, language=self.code, task="translate",
                                      temperature=0.0, verbose=None)["text"].strip()
-        segs, _ = self.m.transcribe(audio, language="ko", task="translate", beam_size=1)
+        segs, _ = self.m.transcribe(audio, language=self.code, task="translate", beam_size=1)
         return "".join(s.text for s in segs).strip()
 
 
 # ---------------------------------------------------------------- translation
-def google_translate(text):
+def google_translate(text, sl="ko"):
     import json, urllib.parse, urllib.request
-    url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&q=" + urllib.parse.quote(text)
+    url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + sl + "&tl=en&dt=t&q=" + urllib.parse.quote(text)
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     data = json.load(urllib.request.urlopen(req, timeout=5))
     return "".join(x[0] for x in data[0] if x and x[0]).strip()
 
 
-def mymemory_translate(text):
+def mymemory_translate(text, pair="ko|en"):
     import json, urllib.parse, urllib.request
-    url = "https://api.mymemory.translated.net/get?langpair=ko|en&q=" + urllib.parse.quote(text)
+    url = "https://api.mymemory.translated.net/get?langpair=" + pair + "&q=" + urllib.parse.quote(text)
     d = json.load(urllib.request.urlopen(url, timeout=5))
     return (d.get("responseData") or {}).get("translatedText", "").strip()
 
 
-def translate_text(text):
+def translate_text(text, sl="ko", pair="ko|en", script=None):
     """Google (with one retry) -> MyMemory. Returns None if all fail."""
-    for fn, tries in ((google_translate, 2), (mymemory_translate, 1)):
+    script = HANGUL if script is None else script
+    for fn, tries, arg in ((google_translate, 2, sl), (mymemory_translate, 1, pair)):
         for i in range(tries):
             try:
-                en = fn(text)
-                if en and not HANGUL.search(en): return en
+                en = fn(text, arg)
+                if en and not script.search(en): return en
             except Exception as e:
                 log(f"  ({fn.__name__} {type(e).__name__})")
             time.sleep(0.4)
@@ -279,8 +403,10 @@ def player(play_q, stop, mute, volume, save, device=None, latency=0.4):
 
 # ---------------------------------------------------------------- main
 def main():
-    ap = argparse.ArgumentParser(description="Live Korean->English voice dub for a stream URL")
+    ap = argparse.ArgumentParser(description="Live Korean or Mandarin -> English voice dub for a stream URL")
     ap.add_argument("url")
+    ap.add_argument("--lang", choices=["ko", "zh"], default="ko",
+                    help="source language: ko (Korean, default) or zh (Mandarin). Glossary and --overdub are in kodub_llm.py")
     ap.add_argument("--quality", default="worst", help="stream quality to pull (audio is the same; default worst = least bandwidth)")
     ap.add_argument("--model", default=None, help="whisper model (default: large-v3-turbo via MLX on Apple Silicon, 'small' elsewhere)")
     ap.add_argument("--voice", default="en-US-GuyNeural", help="edge-tts voice, e.g. en-US-AriaNeural")
@@ -290,22 +416,25 @@ def main():
     ap.add_argument("--out-device", default=None, help="output device name/index (default: system output)")
     ap.add_argument("--out-latency", type=float, default=0.4, help="output buffer in seconds (raise if it crackles)")
     ap.add_argument("--translator", choices=["google", "whisper"], default="google",
-                    help="google = transcribe Korean then Google Translate (better); whisper = whisper's built-in translate")
+                    help="google = transcribe then Google/MyMemory (better); whisper = whisper's built-in translate")
     ap.add_argument("--max-lag", type=float, default=12.0, help="drop segments older than this many seconds")
     ap.add_argument("--mute", action="store_true", help="don't play audio, just print (testing)")
     ap.add_argument("--save", default=None, help="also write dubbed audio to this .wav")
     ap.add_argument("--duration", type=float, default=0, help="stop after N seconds (testing)")
     a = ap.parse_args()
 
+    prof = LANGS[a.lang]
     log("loading models (first run downloads ~1.5 GB)...")
-    asr = ASR(a.model)
-    log("ASR ready:", asr.name, "(MLX)" if asr.mlx else "(CPU)")
+    asr = ASR(a.model, lang=a.lang)
+    log("ASR ready:", asr.name, "(MLX)" if asr.mlx else "(CPU)", "lang", a.lang)
     gt = a.translator == "google"
     import os
     ekey = os.environ.get("ELEVENLABS_API_KEY")
     log("TTS:", "ElevenLabs Flash v2.5" if ekey else "Edge neural voice " + a.voice)
 
     stop = threading.Event()
+    edge_fails = 0
+    edge_off = False
     in_q, seg_q, play_q = queue.Queue(), queue.Queue(), queue.Queue()
     for fn, args in [(audio_source, (a.url, a.quality, in_q, stop)), (segmenter, (in_q, seg_q, stop)),
                      (player, (play_q, stop, a.mute, a.volume, a.save, a.out_device, a.out_latency))]:
@@ -317,38 +446,56 @@ def main():
         while not (t_end and time.time() > t_end):
             try: t_seg, seg = seg_q.get(timeout=0.5)
             except queue.Empty: continue
-            age = time.time() - t_seg
-            if age > a.max_lag:
-                log(f"[skip, {age:.0f}s behind]"); continue
+            pending = [(t_seg, seg)]
+            while True:
+                try: pending.append(seg_q.get_nowait())
+                except queue.Empty: break
+            now = time.time()
+            live = [s for s in pending if now - s[0] <= a.max_lag]
+            if not live:
+                log(f"[skip {len(pending)} behind]"); continue
+            if len(live) > 1:
+                log(f"[skip {len(pending) - 1} behind]")
+            t_seg, seg = max(live, key=lambda s: s[0])
             lang, text, nsp = asr.transcribe(seg)
-            ko = lang == "ko" and len(HANGUL.findall(text)) >= 2 and nsp < 0.6 \
-                and not any(j in text for j in JUNK)
-            if not ko:
+            ok = norm_lang(lang) == prof["whisper"] and len(prof["script"].findall(text)) >= 2 and nsp < 0.6 \
+                and not is_junk(text, a.lang)
+            if not ok:
                 if text: log(f"  - skip [{lang}] {text[:70]}")
                 continue
             en = None
             if gt:
-                en = translate_text(text)
+                en = translate_text(text, sl=prof["google"], pair=prof["mymemory"], script=prof["script"])
             if not en: en = asr.translate(seg)
-            if not en or HANGUL.search(en) or not re.search(r"[A-Za-z]", en):
+            if not en or prof["script"].search(en) or not re.search(r"[A-Za-z]", en):
                 log(f"  - translation failed for: {text[:60]}"); continue
             backlog = play_q.qsize() + seg_q.qsize()
             rate = f"+{min(10 + 15 * backlog, 50)}%"
-            try:
-                if ekey:
-                    try: pcm = eleven_pcm(en, a.eleven_voice, ekey)
-                    except Exception as e:
-                        log("elevenlabs failed:", type(e).__name__); pcm = tts_pcm(en, a.voice, rate)
-                else:
+            pcm = None
+            if ekey:
+                try: pcm = eleven_pcm(en, a.eleven_voice, ekey)
+                except Exception as e:
+                    log("elevenlabs failed:", type(e).__name__)
+            if pcm is None and not edge_off:
+                try:
                     pcm = tts_pcm(en, a.voice, rate)
-            except Exception as e:
-                log("edge-tts failed:", type(e).__name__)
-                if platform.system() != "Darwin": continue
-                pcm = say_pcm(en)
+                    edge_fails = 0
+                except Exception as e:
+                    edge_fails += 1
+                    log("edge-tts failed:", type(e).__name__)
+                    if edge_fails >= 2:
+                        edge_off = True
+                        log("Edge TTS disabled after repeated handshake failures")
+            if pcm is None and platform.system() == "Darwin":
+                try: pcm = say_pcm(en)
+                except Exception as e:
+                    log("say failed:", type(e).__name__)
+            if pcm is None:
+                continue
             play_q.put(pcm)
             d = time.time() - t_seg
             lat.append(d)
-            log(f"KO: {text}\n         EN: {en}   (ready {d:.1f}s after speech ended)")
+            log(f"{prof['label']}: {text}\n         EN: {en}   (ready {d:.1f}s after speech ended)")
     except KeyboardInterrupt:
         pass
     stop.set()
