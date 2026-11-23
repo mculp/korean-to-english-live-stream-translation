@@ -149,7 +149,7 @@ Overdub mode lags the live picture by `--overdub-delay` (default 7s) plus the ou
 - English lags the stream by a few seconds in normal mode, and by the overdub hold when `--overdub` is on. The browser video is not delayed.
 - Overdub ducks the whole stream mix, game audio included, because the caster and the game are not separate tracks.
 - Game audio is skipped in normal mode only because it is non-speech or not the source language. Source-language in-game voice lines would be dubbed.
-- Whisper still mishears names and slang. The glossary and ASR prompt are tuned for Warcraft 3 (Korean, and Mandarin as casters say it, including the Forsaken Paladin).
+- Whisper still mishears names and slang. The Mandarin glossary follows the races named in `--context` and the last few lines: 狗 is ghouls in an Undead game, spirit wolves only when Orc or a Far Seer is on screen, and just "dog" when neither has been named.
 - Short game sounds are occasionally mistaken for speech.
 - Google's free endpoint rate-limits after heavy use; MyMemory is lower quality and has a daily quota.
 - Douyin returns no media unless the room is actually live. A room page can still show a title while streamlink reports it offline.

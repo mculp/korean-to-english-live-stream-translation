@@ -104,17 +104,89 @@ Rules:
 - If a line is fragmentary but has a plausible casting meaning, translate that meaning instead of skipping.
 - Never second-guess yourself out loud. No "wait", "no", "sorry", or a second version of the line. One spoken line only.
 
-Player handles: Infi, Fly100% (also Fly, 百分百), TH000 (also TH), Lyn, Moon, Fortitude, LawLiet, Sok, Colorful (彩色), YouTiao (油条), eer0 (also 一零), LioN (also 大帝 when that is the caster), 120 (also 人皇), Happy. Other names you recognize (Romantic / 罗曼蒂克, TeD, HawK, Yumiko, Focus, Remind) stay as those handles.
+Player handles: Infi, Fly100% (also Fly, 百分百), TH000 (also TH), Lyn, Moon, Fortitude, LawLiet, Sok, Colorful (彩色), YouTiao (油条), eer0 (also 一零), LioN (also 大帝 when that is the caster), 120 (also 人皇), Happy, LabyRinth. 浪漫 and 毕竟罗曼蒂 are Fortitude's ladder name, not the adjective "romantic". 罗曼蒂克 without 毕竟 can be the player Romantic. 民主 is a misheard player name, not the word democracy: transliterate it or use a handle already in the match. Other names you recognize (TeD, HawK, Yumiko, Focus, Remind) stay as those handles.
 
 Warcraft 3 glossary, as Chinese casters say it:
 - Races: 人族/人 = Human, 兽族/兽 = Orc, 亡灵/不死 = Undead, 暗夜/精灵 = Night Elf.
 - Heroes: 大法/大法师 = Archmage, 山丘 = Mountain King, 圣骑 = Paladin, 血法 = Blood Mage, 剑圣 = Blademaster, 先知 = Far Seer, 牛头/酋长 = Tauren Chieftain, 暗猎/暗影猎手 = Shadow Hunter, 死骑/死亡骑士 = Death Knight, 巫妖 = Lich, 恐惧 = Dreadlord, 地穴 = Crypt Lord, 恶猎/恶魔猎手 = Demon Hunter, 守望 = Warden, 月女/月骑 = Priestess of the Moon, 小鹿/KOG = Keeper of the Grove, 熊猫 = Pandaren Brewmaster, 炼金 = Alchemist, 火领 = Firelord, 修补 = Tinker, 娜迦 = Naga Sea Witch, 被遗忘者圣骑士/遗忘骑 = Forsaken Paladin (the new tavern hero).
-- Units: 火枪 = Riflemen, 破法 = Spell Breakers, 牧师 = Priests, 女巫 = Sorceress, 民兵 = Militia, 农民 = Peasants, 苦工 = Peons, 大G = Grunts, 猎头 = Headhunters, 狂战 = Berserkers, 狼骑 = Raiders, 蝙蝠 = Batriders, 牛 = Tauren, 飞龙 = Wyverns, 食尸鬼 = Ghouls, 蜘蛛 = Crypt Fiends, 雕像/石像鬼 = Gargoyles, 憎恶 = Abominations, 冰龙 = Frost Wyrms, 女妖 = Banshees, 女猎 = Huntresses, 弓箭 = Archers, 树妖 = Dryads, 奇美拉 = Chimeras, 大山 = Mountain Giants, 角鹰 = Hippogryphs.
+- Units: 火枪 = Riflemen, 破法 = Spell Breakers, 牧师 = Priests, 女巫 = Sorceress, 民兵 = Militia, 农民 = Peasants, 苦工 = Peons, 大G = Grunts, 猎头 = Headhunters, 狂战 = Berserkers, 狼骑 = Raiders, 蝙蝠 = Batriders, 牛 = Tauren, 飞龙 = Wyverns, 食尸鬼 = Ghouls, 蜘蛛 = Crypt Fiends, 雕像/石像鬼 = Gargoyles, 胖子 = Abomination (the unit, not a hero), 冰龙 = Frost Wyrms, 女妖 = Banshees, 女猎 = Huntresses, 弓箭 = Archers, 树妖 = Dryads, 奇美拉 = Chimeras, 大山 = Mountain Giants, 角鹰 = Hippogryphs, 毁灭 = Destroyer (the unit 毁灭者, not the abstract word "destruction"), 飞机 = flying machine / gyrocopter, not an airplane.
 - Buildings and tech: 基地 = main, 兵营 = barracks, 祭坛 = altar, 二本 = tier 2, 三本 = tier 3, 升本 = teching up, 科技 = tech, 塔/箭塔/炮塔 = tower, 商店 = shop, 眼/守卫 = ward.
 - Creeping: 练/练级/练怪 = creeping, leveling the hero on neutral creeps. It does not mean practice or training. 这没法练了 = he can't creep here anymore. 这里不练了 = not creeping here anymore. 转而练边上 / 练边上 = switching to creep the side camps. 拉怪 = pulling creeps. 刷野/打野 = creeping too.
 - Slang: 分矿/开矿/二矿 = taking an expansion, 主矿 = main gold, 单矿 = one-base, 偷矿 = sniping or denying that expansion, 偷家/换家 = base trade, 运营 = macro, 一波 = all-in, 打架/团战 = fight, 抓 = picking a unit or hero off, 秒 = bursting something down instantly, 网/被网 = netted or ensnared (crypt fiend web or raider net), 骚扰/牵制 = harass, 微操 = micro, 卡兵 = body block, 集火 = focus, 风筝 = kite, 残血 = low HP, 人口 = supply, 爆兵 = a timing push, 攻防/1-1 = attack and armor upgrades, 三级 = hero level 3, 三三 = both heroes level 3, 买活 = buying a revive, 回城/TP = town portal, 圣盾 = Divine Shield, 无敌 = invulnerability potion, 隐身 = invisibility potion, 爪子 = claws, 鞋子 = boots, 圆环 = circlet, 翻盘 = a comeback, 后期 = late game, 开局 = the opening.
-- Nicknames that are not ordinary words: 狗 = spirit wolves (Feral Spirit), not dogs. 小炮 = Mortar Teams. 黄皮 = the yellow shop scroll (say "scroll", never "yellow skin"). 小典/小电 = a hero skill, usually lightning (Chain Lightning) or, on an Archmage, Brilliance Aura or Blizzard; not a player's name. 腹地 is not the Hinterlands. It is a mishear of 伏击 (an ambush), 附近 (nearby), or 墓地 (the graveyard). Pick from the line. Never say Hinterlands.
+- 狗/狗子/小狗 is not always spirit wolves. Casters use it loosely. Obey the race note added under this prompt for the current line: ghouls when Undead is on screen and Orc is not; spirit wolves only when Orc or a Far Seer is on screen and Undead is not; if both races are on screen, ghouls when the line is about the Undead army and wolves only when it is the Far Seer's wolves; if neither race is on screen, say "dog" and do not invent a unit. 切狗 means focus or kill those units, not "switch the build into wolves".
+- A lone Latin letter is a hotkey. 换你的C / C过以后 is Death Coil (死亡缠绕) or that hero's C hotkey, not Crypt Fiends, unless the line actually says 蜘蛛.
+- Unsure nicknames, do not invent a unit. Keep a short literal or a transliteration. 黑胖 might be a Pit Lord or an Abomination; say which only when the line makes it obvious, otherwise keep 黑胖. 三球 is three orbs on a hero; call it Destroyers only when the line is already about 毁灭者, otherwise say "three orbs".
+- 小炮 = Mortar Teams. 黄皮 = the yellow shop scroll (say "scroll", never "yellow skin"). 小典/小电 = a hero skill, usually lightning (Chain Lightning) or, on an Archmage, Brilliance Aura or Blizzard; not a player's name. 腹地 is not the Hinterlands. It is a mishear of 伏击 (an ambush), 附近 (nearby), or 墓地 (the graveyard). Pick from the line. Never say Hinterlands.
 - Short map codes (EI, TR, TM, AZ, TS, CH, and similar) are map names; keep the code."""
+
+
+# Race words used to decide ambiguous slang. 狗 itself is not a marker.
+_UD = ("亡灵", "不死族", "食尸鬼", "胖子", "憎恶", "毁灭者", "死骑", "死亡骑士", "巫妖",
+       "地穴领主", "地穴", "恐惧魔王", "女妖", "冰龙", "绞肉", "雕像", "石像鬼", "小蜘蛛", "蜘蛛", "undead", "ghoul", "abomination", "destroyer")
+_ORC = ("兽族", "兽人", "剑圣", "牛头人", "牛头", "暗影猎手", "暗猎", "大G", "狼骑", "蝙蝠骑", "灵魂行者", "orc", "blademaster")
+_FS = ("先知", "远见者", "far seer", "farseer")
+_HU = ("人族", "山丘", "大法师", "大法", "圣骑", "圣骑士", "血法", "飞机", "火枪", "破法", "民兵", "狮鹫", "human", "mountain king", "paladin", "gyrocopter")
+_NE = ("暗夜", "小鹿", "月女", "恶魔猎手", "恶猎", "守望者", "女猎", "树妖", "奇美拉", "night elf")
+
+
+def scan_board(text):
+    """Which races a blob of caster lines and match context has actually named."""
+    blob = (text or "").lower()
+    def any_of(markers):
+        for m in markers:
+            ml = m.lower()
+            if ml.isascii():
+                if re.search(r"\b" + re.escape(ml) + r"\b", blob):
+                    return True
+            elif ml in blob:
+                return True
+        return False
+    return {
+        "undead": any_of(_UD),
+        "orc": any_of(_ORC),
+        "far_seer": any_of(_FS),
+        "human": any_of(_HU),
+        "night_elf": any_of(_NE),
+    }
+
+
+def dog_reading(board):
+    """ghouls, wolves, ambiguous, or dog. Wolves only with Orc or a Far Seer and no Undead."""
+    undead = bool(board.get("undead"))
+    orc = bool(board.get("orc") or board.get("far_seer"))
+    if undead and not orc:
+        return "ghouls"
+    if orc and not undead:
+        return "wolves"
+    if undead and orc:
+        return "ambiguous"
+    return "dog"
+
+
+def match_brief(texts):
+    """One note for this line: races seen in the rolling window, and what 狗 means right now."""
+    board = scan_board("\n".join(t for t in texts if t))
+    races = []
+    if board["human"]:
+        races.append("Human")
+    if board["orc"] or board["far_seer"]:
+        races.append("Orc" + (" with a Far Seer" if board["far_seer"] else ""))
+    if board["undead"]:
+        races.append("Undead")
+    if board["night_elf"]:
+        races.append("Night Elf")
+    seen = ("Races in the match context and recent lines: " + ", ".join(races) + "."
+            if races else "No race or hero has been named in the match context or recent lines.")
+    reading = dog_reading(board)
+    if reading == "ghouls":
+        dog = '狗/狗子/小狗 means ghouls. Do not say wolves or spirit wolves.'
+    elif reading == "wolves":
+        dog = "狗/狗子 means spirit wolves, because Orc or a Far Seer is on screen and Undead is not."
+    elif reading == "ambiguous":
+        dog = "Both Undead and Orc are on screen. 狗 with the Undead army means ghouls; 狗 with a Far Seer means spirit wolves. Do not default to wolves."
+    else:
+        dog = '狗/狗子 means "dog". Do not invent ghouls or spirit wolves.'
+    return seen + " " + dog
 
 
 def _prompt_terms(prompt):
@@ -615,15 +687,21 @@ class LLMTranslator:
         self.key, self.model, self.ctx = key, model, ctx
         base = KO_SYSTEM if system is None else system
         self.system = str(base)  # copy; later stream-title notes must not mutate LANGS
-        if extra_context and extra_context.strip():
+        self.extra_context = (extra_context or "").strip()
+        if self.extra_context:
             self.system += ("\n\nMatch context from the listener (who is on stream, the series, the map): "
-                            + extra_context.strip())
+                            + self.extra_context)
         self.history = []  # (source, en)
+        self.recent = deque(maxlen=8)  # source lines, including ones the model skipped
+        self.stream_title = ""
+        self.stream_author = ""
         self.tokens_in = self.tokens_out = 0
         self.cost = 0.0
         self._stream_note = False
 
     def add_stream_context(self, title, author):
+        self.stream_title = title or self.stream_title
+        self.stream_author = author or self.stream_author
         if self._stream_note or not (title or author):
             return
         lines = []
@@ -634,12 +712,22 @@ class LLMTranslator:
         self.system += "\n" + "\n".join(lines)
         self._stream_note = True
 
-    def __call__(self, text):
-        import json, urllib.request
-        msgs = [{"role": "system", "content": self.system}]
+    def note_for(self, text):
+        return match_brief([self.extra_context, self.stream_title, self.stream_author,
+                            *self.recent, text])
+
+    def messages_for(self, text):
+        system = self.system + "\n\n" + self.note_for(text)
+        msgs = [{"role": "system", "content": system}]
         for src, en in self.history[-self.ctx:]:
             msgs += [{"role": "user", "content": src}, {"role": "assistant", "content": en}]
         msgs.append({"role": "user", "content": text})
+        return msgs
+
+    def __call__(self, text):
+        import json, urllib.request
+        self.recent.append(text)
+        msgs = self.messages_for(text)
         body = json.dumps({"model": self.model, "messages": msgs, "max_tokens": 300, "temperature": 0.2,
                            "reasoning": {"enabled": False},
                            "provider": {"sort": "latency"},

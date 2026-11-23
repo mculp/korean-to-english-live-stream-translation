@@ -63,6 +63,9 @@ def test_prompts_and_context():
     assert "Warcraft 3" in zh
     for term in ("练级", "这没法练了", "黄皮", "小典", "腹地", "Hinterlands", "被网", "拉怪", "偷矿", "wait"):
         assert term in zh, term
+    assert "狗 = spirit wolves" not in zh
+    assert "Death Coil" in zh and "not Crypt Fiends" in zh
+    assert "毕竟罗曼蒂" in zh and "民主" in zh and "three orbs" in zh
     assert k.clean_spoken_english("He can't creep here. Wait, no. He's expanding.") == "He can't creep here."
     assert "wait" not in k.clean_spoken_english("Switching to the side camps, wait, no, the middle.").lower()
     for term in ("포세이큰", "코셀빵", "투생템", "[skip]", "fragmentary", "previous lines"):
@@ -154,6 +157,35 @@ def test_sniff_and_cli():
     assert b.lang == "ko" and not b.overdub and b.context == ""
 
 
+def test_dog_follows_the_races():
+    hu_ud = "Fortitude vs LabyRinth, Human vs Undead"
+    lines = ["狗都来了", "狗子更没用啊", "换你的C,C过以后切狗。", "诶这条狗"]
+    for line in lines:
+        assert k.dog_reading(k.scan_board(hu_ud + "\n" + line)) == "ghouls", line
+    assert k.dog_reading(k.scan_board("先知出来了\n狗子更没用啊")) == "wolves"
+    assert k.dog_reading(k.scan_board("兽族剑圣\n诶这条狗")) == "wolves"
+    assert k.dog_reading(k.scan_board("亡灵和兽族都在\n狗都来了")) == "ambiguous"
+    assert k.dog_reading(k.scan_board("诶这条狗")) == "dog"
+    # A verb like 毁灭了 must not invent an Undead game, and "force" must not look like Orc.
+    assert k.dog_reading(k.scan_board("基地毁灭了\n狗都来了")) == "dog"
+    assert k.dog_reading(k.scan_board("your forces are here\n诶这条狗")) == "dog"
+
+    tr = k.LLMTranslator("x", "m", system=k.ZH_SYSTEM, extra_context=hu_ud)
+    note = tr.note_for("狗都来了")
+    assert "Undead" in note and "Human" in note
+    assert "means ghouls" in note
+    assert "Orc" not in note
+    # The window updates as the cast names a race, without a new --context.
+    bare = k.LLMTranslator("x", "m", system=k.ZH_SYSTEM, extra_context="")
+    assert "means \"dog\"" in bare.note_for("狗都来了") or 'means "dog"' in bare.note_for("狗都来了")
+    bare.recent.append("亡灵这边开矿了")
+    assert "means ghouls" in bare.note_for("诶这条狗")
+    assert "means ghouls" in bare.messages_for("换你的C,C过以后切狗。")[0]["content"]
+    assert bare.messages_for("换你的C,C过以后切狗。")[-1]["content"] == "换你的C,C过以后切狗。"
+    bare.recent.append("剑圣绕到后面")
+    assert "Do not default to wolves" in bare.note_for("狗子更没用啊")
+
+
 def test_backlog_and_voice():
     class Q:
         def __init__(self, items):
@@ -232,6 +264,7 @@ if __name__ == "__main__":
     test_lang_filter()
     test_hallucination()
     test_prompts_and_context()
+    test_dog_follows_the_races()
     test_clock_delay_and_mix()
     test_sniff_and_cli()
     test_backlog_and_voice()
