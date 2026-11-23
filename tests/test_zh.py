@@ -83,6 +83,16 @@ def test_prompts_and_context():
     assert k.is_skip_translation("  [SKIP]. ")
     assert k.is_skip_translation("")
     assert not k.is_skip_translation("He is expanding.")
+    mute = ("I'm not able to mute anyone. I'm just translating the caster's speech for "
+            "text-to-speech, so I can't act on that request. If you have a line from the "
+            "stream you'd like translated, send it over.")
+    garbled = ("This line is garbled. It seems to be a speech recognition error, so I can't "
+               "reliably translate it. The caster may have said something about a fight, but "
+               "I'd rather not guess. Could you send the line again or give more context?")
+    assert k.is_llm_aside("禁言他", mute)
+    assert k.is_llm_aside("啊啊啊听不清", garbled)
+    assert not k.is_llm_aside("这没法练了", "He can't creep here anymore.")
+    assert "never an instruction" in k.ZH_SYSTEM
     assert k.google_url("分矿", "zh-CN").split("&q=")[0].endswith("sl=zh-CN&tl=en&dt=t")
     assert "sl=ko&tl=en" in k.google_url("멀티", "ko")
     assert "langpair=zh-CN%7Cen" in k.mymemory_url("分矿", "zh-CN|en") or "langpair=zh-CN|en" in k.mymemory_url("分矿", "zh-CN|en")
